@@ -4,6 +4,7 @@ import dbConnect from "./DB/dbConnect.js";
 import authRouter from "./Route/authUser.js";
 import mesageRouter from "./Route/messageRouter.js";
 import cookieParser from "cookie-parser";
+import userRouter from "./Route/userRout.js";
 
 const app=express();
 
@@ -16,6 +17,7 @@ app.use(cookieParser());
 
 app.use('/api/auth',authRouter);
 app.use('/api/message',mesageRouter);
+app.use('/api/user',userRouter);
 
 app.get("/",(req,res)=>{
     res.send("server is working");

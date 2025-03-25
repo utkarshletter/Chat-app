@@ -37,7 +37,13 @@ export const sendMessage=async(req,res)=>{
         
         await Promise.all([chats.save(),newMessage.save()]);
         console.log(newMessage);
+        //
+
+
         //Socket.io function to be written afterwards
+
+        
+        //
         return res.status(200).send(newMessage);
     }
     catch(error){

@@ -5,6 +5,7 @@ import { getMessage,sendMessage } from "../routControllers/messageroutController
 const router = express.Router();
 
 router.post("/send/:id",isLogin,sendMessage);
+
 router.get("/:id",isLogin,getMessage);
 
 export default router;

@@ -8,7 +8,7 @@ const isLogin=async(req,res,next)=>{
         if(!token) res.status(500).send({success:false,message:"User Unauthorized"});
         // const {id:receiverId}=req.params;
         const decode=jwt.verify(token,process.env.JWT_SECRET);
-        if(!token) res.status(500).send({success:false,message:"User Unauthorized -Invalid Token"});
+        if(!decode) res.status(500).send({success:false,message:"User Unauthorized -Invalid Token"});
         const user=await User.findById(decode.userId).select("-password");
         if(!user) res.status(500).send({success:false,message:"User not Found"});
         req.user=user;
