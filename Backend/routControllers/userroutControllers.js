@@ -44,34 +44,46 @@ export const userRegister=async(req,res)=>{
     }
 }
 
-export const userLogin=async(req,res)=>{
+export const userLogin = async (req, res) => {
     try {
-        const {email,password}=req.body;
-        const user=await User.findOne({ email });
-        // console.log(user);
-        if(!user) return res.status(500).send({success:false,message:"Email doesn't exist"});
-        const comparePass=bcrypt.compareSync(password,user.password|| "");
-        if(!comparePass) return res.status(500).send({success:false,message:"Wrong Password"});
-
-        jwtToken(user._id,res);
-        res.status(200).send({
-            _id:user._id,
-            fullname:user.fullname,
-            username:user.username,
-            profilepic:user.profilepic,
-            email:user.email,
-            message:"Successfully Login",
+      const { email, password } = req.body;
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(400).send({
+          success: false,
+          message: "Email doesn't exist",
         });
-
-
+      }
+  
+      const comparePass = bcrypt.compareSync(password, user.password || "");
+      if (!comparePass) {
+        return res.status(400).send({
+          success: false,
+          message: "Wrong Password",
+        });
+      }
+  
+      jwtToken(user._id, res);
+  
+      res.status(200).send({
+        _id: user._id,
+        fullname: user.fullname,
+        username: user.username,
+        profilepic: user.profilepic,
+        email: user.email,
+        message: "Successfully Login",
+      });
+  
     } catch (error) {
-        res.status(500).send({
-            success:false,
-            message:error,
-        })
-        console.log(error);
+      console.error("Login error:", error.message);
+      res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+      });
     }
-};
+  };
+  
 
 
 export const userLogout=async(req,res)=>{

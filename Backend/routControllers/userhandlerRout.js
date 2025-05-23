@@ -44,12 +44,12 @@ export const getcurrentchatters=async(req,res)=>{
 
         const participantsIDS=currentchatters.reduce((ids,conversation)=>{
             const otherparticipants=conversation.participants.filter(id => id !== currentUserID);
-            return [ ...ids, ...otherparticipants]
+            return [ ...ids, ...otherparticipants]  //ids.concat(otherparticipants) jus conv=catinating
         },[]);
 
-        const otherparticipantsIDS=participantsIDS.filter(id => id.toString() !== currentUserID.toString());
-        const user = await User.find({_id:{$in:otherparticipantsIDS}}).select("-password").select("-email");
-        const users=otherparticipantsIDS.map(id=> user.find(user => user._id.toString() === id.toString()));
+        const otherparticipantsIDS=participantsIDS.filter(id => id.toString() !== currentUserID.toString());//just safegaurd if some ids slip from above due to mismatch
+        const user = await User.find({_id:{$in:otherparticipantsIDS}}).select("-password").select("-email");//returning array of founded users(arbitary order)
+        const users=otherparticipantsIDS.map(id=> user.find(user => user._id.toString() === id.toString()));//just redoing the correct order depending on otherparticipantsIDS
         res.status(200).send(users);
     } catch (error) {
         res.status(500).send({

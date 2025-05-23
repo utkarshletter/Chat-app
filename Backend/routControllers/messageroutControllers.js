@@ -1,4 +1,3 @@
-// import User from "../Models/userModels.js";
 import Message from "../Models/messageSchema.js";
 import Conversation from "../Models/conversationModules.js";
 
@@ -6,7 +5,6 @@ export const sendMessage=async(req,res)=>{
     try {
         const {id:receiverId}=req.params;
         const senderId=req.user._id;
-        // console.log(senderId);
         if (!req.user._id) {
             console.log("Error: req.user is undefined in sendMessage");
             return res.status(401).json({ success: false, message: "Unauthorized - User not found in request" });
@@ -63,8 +61,8 @@ export const getMessage=async(req,res)=>{
 
         let chats=await Conversation.findOne({
             participants:{$all:[receiverId,senderId]}
-        }).populate("messages");
-        // console.log(chats.messages);
+        }).populate("messages");//here inside conversations we only had like refence to messgae ids but usning populate we get the actual data
+        
         if(!chats){
             return res.status(200).send([]);
         }
