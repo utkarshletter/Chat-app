@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 
 export const Register = () => {
   const navigate = useNavigate();
+  const {setAuthUser}=useAuth();
   const [userInput, setUserInput] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -39,6 +41,7 @@ export const Register = () => {
       }
       toast.success(data.message || 'Registered successfully!');
       localStorage.setItem('chat-app', JSON.stringify(data));
+      setAuthUser(data);
       navigate('/login');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Something went wrong');

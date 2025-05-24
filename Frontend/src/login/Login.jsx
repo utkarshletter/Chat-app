@@ -3,11 +3,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
     const navigate=useNavigate();
+    const {setAuthUser}=useAuth();
+
     const [userInput, setuserInput]=useState({});
     const [loading, setLoading]=useState(false);
+
     const handleInput=(e)=>{
         setuserInput({
             ...userInput,[e.target.id]:e.target.value
@@ -29,6 +33,7 @@ const Login = () => {
       
           toast.success(data.message || "Login successful!");
           localStorage.setItem('chat-app', JSON.stringify(data));
+          setAuthUser(data);
           setLoading(false);
           navigate('/');
         } catch (error) {
