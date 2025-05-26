@@ -6,8 +6,9 @@ import { useAuth } from "../../context/AuthContext";
 import { BiLogOut } from "react-icons/bi";
 import { IoArrowBackSharp } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
+import userConversation from "../../zustand/userConversation";
 
-export const Sidebar = () => {
+export const Sidebar = ({onSelectUser}) => {
   const { AuthUser, setAuthUser } = useAuth();
   const navigate = useNavigate();
 
@@ -16,6 +17,7 @@ export const Sidebar = () => {
   const [chatUser, setChatUser] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const {messages,selectedConversation,setSelectedConversation}=userConversation();
 
   useEffect(() => {
     if (!AuthUser) return;
@@ -47,12 +49,12 @@ export const Sidebar = () => {
   }, [AuthUser]);
   console.log(chatUser);
 
+  //show user from search result
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Assuming search is a public endpoint or needs auth?
-      // If auth needed, add token header like above
+      
       const search = await axios.get(`/api/user/search?search=${searchInput}`);
       const data = search.data;
 
@@ -76,7 +78,10 @@ export const Sidebar = () => {
   };
   console.log(searchUser);
 
+  //konsa user selected hai
   const handelUserClick = (user) => {
+    onSelectUser(user);
+    setSelectedConversation(user);
     setSelectedUserId(user._id);
   };
 
@@ -123,7 +128,9 @@ export const Sidebar = () => {
   };
 
   return (
-    <div className="h-full w-auto px-1">
+    <div className="h-full w-full overflow-hidden p-4
+  bg-white/10 backdrop-blur-md border-r border-white/20 
+  rounded-l-2xl">
       <div className="flex justify-between gap-2">
         <form
           onSubmit={handleSearchSubmit}
