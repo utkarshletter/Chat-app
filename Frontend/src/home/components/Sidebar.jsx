@@ -128,9 +128,8 @@ export const Sidebar = ({onSelectUser}) => {
   };
 
   return (
-    <div className="h-full w-full overflow-hidden p-4
-  bg-white/10 backdrop-blur-md border-r border-white/20 
-  rounded-l-2xl">
+    <div className="h-screen md:h-full w-full overflow-hidden p-4 
+  bg-white/10 backdrop-blur-md border-r border-white/20 rounded-l-2xl">
       <div className="flex justify-between gap-2">
         <form
           onSubmit={handleSearchSubmit}

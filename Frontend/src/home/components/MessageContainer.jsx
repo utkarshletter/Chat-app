@@ -1,38 +1,77 @@
-import React, { useEffect , useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import userConversation from "../../zustand/userConversation";
 import { useAuth } from "../../context/AuthContext";
 import { TiArrowBack, TiMessages } from "react-icons/ti";
+import { IoSend } from "react-icons/io5";
 import axios from "axios";
 
-export const MessageContainer = ({onBackUser}) => {
-  const { messages, selectedConversation, setMessages, setSelectedConversation } =
-    userConversation();
+export const MessageContainer = ({ onBackUser }) => {
+  const {
+    messages,
+    selectedConversation,
+    setMessages,
+    setSelectedConversation,
+  } = userConversation();
   const { AuthUser } = useAuth();
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendData, setSendData] = useState("");
+  const lastMessageRef = useRef();
 
-    useEffect(()=>{
-        const getMessages=async()=>{
-            setLoading(true);
-            try {
-                const get=await axios.get(`/api/message/${selectedConversation?._id}`)
-                const data =await get.data;
-                if(data.success===false){
-                    setLoading(false);
-                    console.log(data.message)
-                }
-                setLoading(false);
-                setMessages(data);
-            } catch (error) {
-                setLoading(false);
-                console.log(error)
-            }
-            
+  useEffect(() => {
+    setTimeout(() => {
+      lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
+    });
+  }, [messages]);
+
+  useEffect(() => {
+    const getMessages = async () => {
+      setLoading(true);
+      try {
+        const get = await axios.get(
+          `/api/message/${selectedConversation?._id}`
+        );
+        const data = await get.data;
+        if (data.success === false) {
+          setLoading(false);
+          console.log(data.message);
         }
-        if(selectedConversation?._id) getMessages();
-    },[selectedConversation?._id,setMessages])
-    console.log(messages);
+        setLoading(false);
+        setMessages(data);
+      } catch (error) {
+        setLoading(false);
+        console.log(error);
+      }
+    };
+    if (selectedConversation?._id) getMessages();
+  }, [selectedConversation?._id, setMessages]);
+  console.log(messages);
+  const handleMessage = (e) => {
+    setSendData(e.target.value);
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    try {
+      const res = await axios.post(
+        `/api/message/send/${selectedConversation?._id}`,
+        { message: sendData }
+      );
+      const data = await res.data;
+      if (data.success === false) {
+        setSending(false);
+        console.log(data.message);
+      }
+      setSending(false);
+      setSendData("");
+      setMessages([...messages, data]);
+    } catch (error) {
+      setSending(false);
+      console.log(error);
+    }
+  };
   return (
-    <div className="md:min-w-[500px] h-[99%] flex flex-col py-2">
+    <div className="h-screen md:h-[99%] flex flex-col pt-0 pb-2">
       {selectedConversation === null ? (
         <div className="flex items-center justify-center w-full h-full">
           <div
@@ -71,12 +110,77 @@ export const MessageContainer = ({onBackUser}) => {
               </div>
             </div>
           </div>
-            <div className="flex-1 overflow-auto"> 
-                  
+          <div className="flex-1 overflow-y-auto">
+            {loading && (
+              <div className="flex w-full h-full flex-col items-center justify-center gap-4 bg-transparent">
+                <div className="loading loading-spinner"></div>
+              </div>
+            )}
+            {!loading && messages?.length === 0 && (
+              <p className="text-center text-white items-center">
+                Send a message to start Conversation
+              </p>
+            )}
+            {!loading &&
+              messages?.length > 0 &&
+              messages.map((message) => (
+                <div
+                  className="text-white"
+                  key={message?._id}
+                  ref={lastMessageRef}
+                >
+                  <div
+                    className={`chat ${
+                      message.senderId === AuthUser._id
+                        ? "chat-end"
+                        : "chat-start"
+                    }`}
+                  >
+                    <div className="chat-image avatar"></div>
+                    <div
+                      className={`chat-bubble text-black ${
+                        message.senderId === AuthUser._id
+                          ? "bg-sky-600 text-white"
+                          : "bg-gray-300"
+                      }`}
+                    >
+                      {message?.message}
+                    </div>
+                    <div className="chat-footer text-[10px] opacity-80 text-white">
+                      {new Date(message?.createdAt).toLocaleDateString("en-IN")}
+                      {new Date(message?.createdAt).toLocaleTimeString(
+                        "en-IN",
+                        { hour: "numeric", minute: "numeric" }
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+          <form onSubmit={handleSubmit} className="rounded-full text-black">
+            <div className="w-full rounded-full flex items-center bg-white">
+              <input
+                value={sendData}
+                onChange={handleMessage}
+                required
+                id="message"
+                type="text"
+                className="w-full bg-transparent outline-none px-4 rounded-full"
+              />
+              <button type="submit">
+                {sending ? (
+                  <div className="loading loading-spinner"></div>
+                ) : (
+                  <IoSend
+                    size={25}
+                    className="text-sky-700 cursor-pointer rounded-full bg-gray-800 w-10 h-auto p-1"
+                  />
+                )}
+              </button>
             </div>
+          </form>
         </>
       )}
-      
     </div>
   );
 };
