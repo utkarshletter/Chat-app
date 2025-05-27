@@ -7,8 +7,9 @@ import { BiLogOut } from "react-icons/bi";
 import { IoArrowBackSharp } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import userConversation from "../../zustand/userConversation";
+import { useSocketContext } from "../../context/socketContext";
 
-export const Sidebar = ({onSelectUser}) => {
+export const Sidebar = ({ onSelectUser }) => {
   const { AuthUser, setAuthUser } = useAuth();
   const navigate = useNavigate();
 
@@ -17,7 +18,25 @@ export const Sidebar = ({onSelectUser}) => {
   const [chatUser, setChatUser] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const {messages,selectedConversation,setSelectedConversation}=userConversation();
+  const [newMessageUsers,setNewMessageUsers]=useState('');
+  const { messages,
+    selectedConversation,
+    setMessages,
+    setSelectedConversation, } =
+    userConversation();
+  const { onlineUser, socket } = useSocketContext();
+  
+  const nowOnline = chatUser.map((user) => user._id);
+  const isOnline = nowOnline.map((userId) => onlineUser.includes(userId));
+
+
+    useEffect(()=>{
+      socket?.on("newMessage",(newMessage)=>{
+          setNewMessageUsers(newMessage)
+      })
+  
+      return ()=>socket?.off("newMessage");
+    },[socket,messages])
 
   useEffect(() => {
     if (!AuthUser) return;
@@ -54,7 +73,6 @@ export const Sidebar = ({onSelectUser}) => {
     e.preventDefault();
     setLoading(true);
     try {
-      
       const search = await axios.get(`/api/user/search?search=${searchInput}`);
       const data = search.data;
 
@@ -83,6 +101,7 @@ export const Sidebar = ({onSelectUser}) => {
     onSelectUser(user);
     setSelectedConversation(user);
     setSelectedUserId(user._id);
+    setNewMessageUsers('')
   };
 
   // logout
@@ -128,8 +147,10 @@ export const Sidebar = ({onSelectUser}) => {
   };
 
   return (
-    <div className="h-screen md:h-full w-full overflow-hidden p-4 
-  bg-white/10 backdrop-blur-md border-r border-white/20 rounded-l-2xl">
+    <div
+      className="h-screen md:h-full w-full overflow-hidden p-4 
+  bg-white/10 backdrop-blur-md border-r border-white/20 rounded-l-2xl"
+    >
       <div className="flex justify-between gap-2">
         <form
           onSubmit={handleSearchSubmit}
@@ -174,10 +195,15 @@ export const Sidebar = ({onSelectUser}) => {
                                     : ""
                                 } `}
                   >
-                    <div className="avatar">
-                      <div className="w-12 rounded-full h-12">
-                        <img src={user.profilepic} alt="user.img" />
-                      </div>
+                    <div className="avatar relative w-12 h-12">
+                      <img
+                        src={user.profilepic}
+                        alt="user.img"
+                        className="w-12 h-12 rounded-full"
+                      />
+                      {isOnline[index] && (
+                        <span className="indicator-item badge badge-success badge-xs absolute bottom-1 right-1"></span>
+                      )}
                     </div>
                     <div className="flex flex-col flex-1">
                       <p className="font-bold text-grey-950">{user.username}</p>
@@ -223,15 +249,30 @@ export const Sidebar = ({onSelectUser}) => {
                                     : ""
                                 } `}
                       >
-                        <div className="avatar">
-                          <div className="w-12 rounded-full h-12">
-                            <img src={user.profilepic} alt="user.img" />
-                          </div>
+                        <div className="avatar relative w-12 h-12">
+                          <img
+                            src={user.profilepic}
+                            alt="user.img"
+                            className="w-12 h-12 rounded-full"
+                          />
+                          {isOnline[index] && (
+                            <span className="indicator-item badge badge-success badge-xs absolute bottom-1 right-1"></span>
+                          )}
                         </div>
                         <div className="flex flex-col flex-1">
                           <p className="font-bold text-grey-950">
                             {user.username}
                           </p>
+                        </div>
+                        <div>
+                          {newMessageUsers.receiverId === AuthUser._id &&
+                          newMessageUsers.senderId === user._id ? (
+                            <div className="rounded-full bg-green-700 text-sm text-white px-[4px]">
+                              +1
+                            </div>
+                          ) : (
+                            <></>
+                          )}
                         </div>
                       </div>
                       <div className="divider divide-solid px-3 h-[1px]"></div>
