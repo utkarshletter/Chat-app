@@ -5,12 +5,13 @@ import authRouter from "./Route/authUser.js";
 import mesageRouter from "./Route/messageRouter.js";
 import cookieParser from "cookie-parser";
 import userRouter from "./Route/userRout.js";
-
-const app=express();
+import {app,server} from "./Socket/socket.js";
+import path from "path";
 
 
 dotenv.config();
-const Port=process.env.PORT||3000;
+const Port=process.env.PORT||5000;
+const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -19,11 +20,13 @@ app.use('/api/auth',authRouter);
 app.use('/api/message',mesageRouter);
 app.use('/api/user',userRouter);
 
-app.get("/",(req,res)=>{
-    res.send("server is working");
-});
+app.use(express.static(path.join(__dirname,"/frontend/dist")))
 
-app.listen(Port,()=>{
+app.get("*",(req,res)=>{
+    res.sendFile(path.join(__dirname,"frontend","dist","index.html"))
+})
+
+server.listen(Port,()=>{
     dbConnect();
     console.log(`Server is running at ${Port}`);
 });

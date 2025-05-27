@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { TiArrowBack, TiMessages } from "react-icons/ti";
 import { IoSend } from "react-icons/io5";
 import axios from "axios";
+import { useSocketContext } from "../../context/socketContext";
 
 export const MessageContainer = ({ onBackUser }) => {
   const {
@@ -12,11 +13,20 @@ export const MessageContainer = ({ onBackUser }) => {
     setMessages,
     setSelectedConversation,
   } = userConversation();
+  const {socket}=useSocketContext();
   const { AuthUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendData, setSendData] = useState("");
   const lastMessageRef = useRef();
+
+  useEffect(()=>{
+    socket?.on("newMessage",(newMessage)=>{
+        setMessages([...messages,newMessage])
+    })
+
+    return ()=>socket?.off("newMessage");
+  },[socket,setMessages,messages])
 
   useEffect(() => {
     setTimeout(() => {
@@ -71,7 +81,7 @@ export const MessageContainer = ({ onBackUser }) => {
     }
   };
   return (
-    <div className="h-screen md:h-[99%] flex flex-col pt-0 pb-2">
+    <div className="h-screen md:h-[100%] flex flex-col pt-0 pb-2">
       {selectedConversation === null ? (
         <div className="flex items-center justify-center w-full h-full">
           <div
