@@ -68,7 +68,7 @@ export const Register = () => {
               onChange={handleInput}
               placeholder="Enter fullname"
               required
-              className="w-full input input-bordered h-10"
+              className="w-full input input-bordered h-10 bg-white"
             />
           </div>
           <div>
@@ -81,7 +81,7 @@ export const Register = () => {
               onChange={handleInput}
               placeholder="Enter Username"
               required
-              className="w-full input input-bordered h-10"
+              className="w-full input input-bordered h-10 bg-white"
             />
           </div>
             
@@ -95,7 +95,7 @@ export const Register = () => {
               onChange={handleInput}
               placeholder="Enter email"
               required
-              className="w-full input input-bordered h-10"
+              className="w-full input input-bordered h-10 bg-white"
             />
           </div>
           <div>
@@ -108,7 +108,7 @@ export const Register = () => {
               onChange={handleInput}
               placeholder="Enter password"
               required
-              className="w-full input input-bordered h-10"
+              className="w-full input input-bordered h-10 bg-white"
             />
           </div>
           <div>
@@ -121,7 +121,7 @@ export const Register = () => {
               onChange={handleInput}
               placeholder="Confirm password"
               required
-              className="w-full input input-bordered h-10"
+              className="w-full input input-bordered h-10 bg-white"
             />
           </div>
           <div id='gender' className='flex gap-2'>

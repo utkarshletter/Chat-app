@@ -60,7 +60,7 @@ const Login = () => {
               onChange={handleInput}
               placeholder="Enter your email"
               required
-              className="w-full input input-bordered h-10"
+              className="w-full input input-bordered h-10 bg-white"
             />
           </div>
           <div>
@@ -73,7 +73,7 @@ const Login = () => {
               onChange={handleInput}
               placeholder="Enter your password"
               required
-              className="w-full input input-bordered h-10"
+              className="w-full input input-bordered h-10 bg-white"
             />
           </div>
           <button type="submit" className="btn btn-primary mt-4">
