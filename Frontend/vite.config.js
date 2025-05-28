@@ -9,7 +9,8 @@ export default defineConfig({
     server:{
         proxy:{
             '/api':{
-                target:'https://uv-chatters.onrender.com'
+                target:'https://uv-chatters.onrender.com',
+                secure:false
             }
         }
     }
