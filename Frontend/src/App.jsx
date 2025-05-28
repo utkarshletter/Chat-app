@@ -2,7 +2,7 @@ import Login from "./login/Login.jsx"
 import { ToastContainer} from 'react-toastify';
 import { Route,Routes } from "react-router-dom";
 import { Register } from "./register/Register";
-import { Home } from "./home/home";
+import { Home } from "./home/Home.jsx";
 import { VerifyUser } from "./utils/VerifyUser";
 function App() {
 
