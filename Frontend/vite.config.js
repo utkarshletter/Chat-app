@@ -7,10 +7,11 @@ export default defineConfig({
     plugins: [react(),
         tailwindcss(),],
     server:{
+        port:5000,
         proxy:{
             '/api':{
-                target:'https://uv-chatters.onrender.com',
-                secure:false
+                target:'',
+                
             }
         }
     }
