@@ -15,7 +15,7 @@ export const SocketContextProvider = ({ children }) => {
     let newSocket;
 
     if (AuthUser) {
-      newSocket = io("http://localhost:5000", {
+      newSocket = io("https://uv-chatters.onrender.com/", {
         query: {
           userId: AuthUser._id,
         },
