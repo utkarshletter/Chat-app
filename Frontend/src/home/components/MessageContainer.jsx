@@ -81,7 +81,7 @@ export const MessageContainer = ({ onBackUser }) => {
     }
   };
   return (
-    <div className="h-[98%] md:h-[100%] flex flex-col justify-center pt-0 pb-2 mt-[5%]">
+    <div className="h-[98%] md:h-[100%] flex flex-col justify-center pt-0 pb-2 mt-[5%] md:mt-[0%]">
       {selectedConversation === null ? (
         <div className="flex items-center justify-center w-full h-full">
           <div
