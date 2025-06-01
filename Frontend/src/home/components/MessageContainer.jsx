@@ -18,43 +18,45 @@ export const MessageContainer = ({ onBackUser }) => {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendData, setSendData] = useState("");
-  const messageContainerRef = useRef(); // NEW: Ref for scrollable container
+  const messageContainerRef = useRef(); // Container ref
+  const bottomRef = useRef(null); // Scroll target ref
 
+  // Socket listener
   useEffect(() => {
     socket?.on("newMessage", (newMessage) => {
-      setMessages([...messages, newMessage]);
+      setMessages((prev) => [...prev, newMessage]);
     });
 
     return () => socket?.off("newMessage");
-  }, [socket, setMessages, messages]);
+  }, [socket, setMessages]);
 
-  // Scroll the container when messages update
+  // Scroll to the last message
   useEffect(() => {
-    if (messageContainerRef.current) {
-      messageContainerRef.current.scrollTop =
-        messageContainerRef.current.scrollHeight;
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
+  // Fetch messages
   useEffect(() => {
     const getMessages = async () => {
       setLoading(true);
       try {
-        const get = await axios.get(
-          `/api/message/${selectedConversation?._id}`
-        );
-        const data = await get.data;
+        const res = await axios.get(`/api/message/${selectedConversation?._id}`);
+        const data = await res.data;
         if (data.success === false) {
           setLoading(false);
           console.log(data.message);
+          return;
         }
-        setLoading(false);
         setMessages(data);
       } catch (error) {
-        setLoading(false);
         console.log(error);
+      } finally {
+        setLoading(false);
       }
     };
+
     if (selectedConversation?._id) getMessages();
   }, [selectedConversation?._id, setMessages]);
 
@@ -72,15 +74,15 @@ export const MessageContainer = ({ onBackUser }) => {
       );
       const data = await res.data;
       if (data.success === false) {
-        setSending(false);
         console.log(data.message);
+      } else {
+        setMessages((prev) => [...prev, data]);
+        setSendData("");
       }
-      setSending(false);
-      setSendData("");
-      setMessages([...messages, data]);
     } catch (error) {
-      setSending(false);
       console.log(error);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -96,25 +98,23 @@ export const MessageContainer = ({ onBackUser }) => {
         </div>
       ) : (
         <>
+          {/* Header */}
           <div className="flex justify-between gap-1 bg-sky-600 md:px-2 rounded-lg h-10 md:h-12">
             <div className="flex gap-2 md:justify-between items-center w-full">
               <div className="md:hidden ml-1 self-center">
                 <button
-                  onClick={() => {
-                    onBackUser(true);
-                  }}
+                  onClick={() => onBackUser(true)}
                   className="bg-white rounded-full px-2 py-1 self-center"
                 >
                   <TiArrowBack size={25} />
                 </button>
               </div>
               <div className="flex justify-between mr-2 gap-2">
-                <div className="self-center">
-                  <img
-                    className="rounded-full w-6 h-6 md:w-10 md:h-10 cursor-pointer"
-                    src={selectedConversation?.profilepic}
-                  />
-                </div>
+                <img
+                  className="rounded-full w-6 h-6 md:w-10 md:h-10 cursor-pointer self-center"
+                  src={selectedConversation?.profilepic}
+                  alt="profile"
+                />
                 <span className="text-gray-950 self-center text-sm md:text-xl font-bold">
                   {selectedConversation?.username}
                 </span>
@@ -122,27 +122,22 @@ export const MessageContainer = ({ onBackUser }) => {
             </div>
           </div>
 
-          {/* Message List Container */}
+          {/* Messages */}
           <div className="flex-1 overflow-y-auto" ref={messageContainerRef}>
-            {loading && (
+            {loading ? (
               <div className="flex w-full h-full flex-col items-center justify-center gap-4 bg-transparent">
                 <div className="loading loading-spinner"></div>
               </div>
-            )}
-            {!loading && messages?.length === 0 && (
+            ) : messages?.length === 0 ? (
               <p className="text-center text-white items-center">
                 Send a message to start Conversation
               </p>
-            )}
-            {!loading &&
-              messages?.length > 0 &&
+            ) : (
               messages.map((message) => (
                 <div className="text-white" key={message?._id}>
                   <div
                     className={`chat ${
-                      message.senderId === AuthUser._id
-                        ? "chat-end"
-                        : "chat-start"
+                      message.senderId === AuthUser._id ? "chat-end" : "chat-start"
                     }`}
                   >
                     <div className="chat-image avatar"></div>
@@ -157,17 +152,19 @@ export const MessageContainer = ({ onBackUser }) => {
                     </div>
                     <div className="chat-footer text-[10px] opacity-80 text-white">
                       {new Date(message?.createdAt).toLocaleDateString("en-IN")}{" "}
-                      {new Date(message?.createdAt).toLocaleTimeString(
-                        "en-IN",
-                        { hour: "numeric", minute: "numeric" }
-                      )}
+                      {new Date(message?.createdAt).toLocaleTimeString("en-IN", {
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+            )}
+            <div ref={bottomRef} />
           </div>
 
-          {/* Message Input */}
+          {/* Input */}
           <form onSubmit={handleSubmit} className="rounded-full text-black">
             <div className="w-full rounded-full flex items-center bg-white">
               <input
