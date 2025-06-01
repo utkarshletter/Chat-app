@@ -74,15 +74,15 @@ export const MessageContainer = ({ onBackUser }) => {
       );
       const data = await res.data;
       if (data.success === false) {
+        setSending(false);
         console.log(data.message);
-      } else {
-        setMessages((prev) => [...prev, data]);
-        setSendData("");
       }
-    } catch (error) {
-      console.log(error);
-    } finally {
       setSending(false);
+      setSendData("");
+      setMessages([...messages, data]);
+    } catch (error) {
+      setSending(false);
+      console.log(error);
     }
   };
 
