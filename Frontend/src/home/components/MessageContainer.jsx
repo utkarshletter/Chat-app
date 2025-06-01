@@ -13,25 +13,27 @@ export const MessageContainer = ({ onBackUser }) => {
     setMessages,
     setSelectedConversation,
   } = userConversation();
-  const {socket}=useSocketContext();
+  const { socket } = useSocketContext();
   const { AuthUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendData, setSendData] = useState("");
-  const lastMessageRef = useRef();
-
-  useEffect(()=>{
-    socket?.on("newMessage",(newMessage)=>{
-        setMessages([...messages,newMessage])
-    })
-
-    return ()=>socket?.off("newMessage");
-  },[socket,setMessages,messages])
+  const messageContainerRef = useRef(); // NEW: Ref for scrollable container
 
   useEffect(() => {
-    setTimeout(() => {
-      lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
+    socket?.on("newMessage", (newMessage) => {
+      setMessages([...messages, newMessage]);
     });
+
+    return () => socket?.off("newMessage");
+  }, [socket, setMessages, messages]);
+
+  // Scroll the container when messages update
+  useEffect(() => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop =
+        messageContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -55,10 +57,11 @@ export const MessageContainer = ({ onBackUser }) => {
     };
     if (selectedConversation?._id) getMessages();
   }, [selectedConversation?._id, setMessages]);
-  console.log(messages);
+
   const handleMessage = (e) => {
     setSendData(e.target.value);
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
@@ -80,14 +83,12 @@ export const MessageContainer = ({ onBackUser }) => {
       console.log(error);
     }
   };
+
   return (
-    <div className="h-[98%] md:h-[100%] flex flex-col justify-center pt-0 pb-2 mt-[5%] md:mt-[0%]">
+    <div className="h-[98%] md:h-[100%] flex flex-col justify-center pt-0 pb-2">
       {selectedConversation === null ? (
         <div className="flex items-center justify-center w-full h-full">
-          <div
-            className="px-4 text-center text-2xl text-gray-950 font-semibold 
-            flex flex-col items-center gap-2"
-          >
+          <div className="px-4 text-center text-2xl text-gray-950 font-semibold flex flex-col items-center gap-2">
             <p className="text-2xl">Welcome!!👋 {AuthUser.username}😉</p>
             <p className="text-lg">Select a chat to start messaging</p>
             <TiMessages className="text-6xl text-center" />
@@ -120,7 +121,9 @@ export const MessageContainer = ({ onBackUser }) => {
               </div>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
+
+          {/* Message List Container */}
+          <div className="flex-1 overflow-y-auto" ref={messageContainerRef}>
             {loading && (
               <div className="flex w-full h-full flex-col items-center justify-center gap-4 bg-transparent">
                 <div className="loading loading-spinner"></div>
@@ -134,11 +137,7 @@ export const MessageContainer = ({ onBackUser }) => {
             {!loading &&
               messages?.length > 0 &&
               messages.map((message) => (
-                <div
-                  className="text-white"
-                  key={message?._id}
-                  ref={lastMessageRef}
-                >
+                <div className="text-white" key={message?._id}>
                   <div
                     className={`chat ${
                       message.senderId === AuthUser._id
@@ -157,7 +156,7 @@ export const MessageContainer = ({ onBackUser }) => {
                       {message?.message}
                     </div>
                     <div className="chat-footer text-[10px] opacity-80 text-white">
-                      {new Date(message?.createdAt).toLocaleDateString("en-IN")}
+                      {new Date(message?.createdAt).toLocaleDateString("en-IN")}{" "}
                       {new Date(message?.createdAt).toLocaleTimeString(
                         "en-IN",
                         { hour: "numeric", minute: "numeric" }
@@ -167,6 +166,8 @@ export const MessageContainer = ({ onBackUser }) => {
                 </div>
               ))}
           </div>
+
+          {/* Message Input */}
           <form onSubmit={handleSubmit} className="rounded-full text-black">
             <div className="w-full rounded-full flex items-center bg-white">
               <input
