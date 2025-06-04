@@ -13,57 +13,52 @@ export const MessageContainer = ({ onBackUser }) => {
     setMessages,
     setSelectedConversation,
   } = userConversation();
-  const { socket } = useSocketContext();
+  const {socket}=useSocketContext();
   const { AuthUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendData, setSendData] = useState("");
-  const messageContainerRef = useRef(); // Container ref
-  const bottomRef = useRef(null); // Scroll target ref
+  const lastMessageRef = useRef();
 
-  // Socket listener
+  useEffect(()=>{
+    socket?.on("newMessage",(newMessage)=>{
+        setMessages([...messages,newMessage])
+    })
+
+    return ()=>socket?.off("newMessage");
+  },[socket,setMessages,messages])
+
   useEffect(() => {
-    socket?.on("newMessage", (newMessage) => {
-      setMessages((prev) => [...prev, newMessage]);
+    setTimeout(() => {
+      lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
     });
-
-    return () => socket?.off("newMessage");
-  }, [socket, setMessages]);
-
-  // Scroll to the last message
-  useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
-    }
   }, [messages]);
 
-  // Fetch messages
   useEffect(() => {
     const getMessages = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`/api/message/${selectedConversation?._id}`);
-        const data = await res.data;
+        const get = await axios.get(
+          `/api/message/${selectedConversation?._id}`
+        );
+        const data = await get.data;
         if (data.success === false) {
           setLoading(false);
           console.log(data.message);
-          return;
         }
+        setLoading(false);
         setMessages(data);
       } catch (error) {
-        console.log(error);
-      } finally {
         setLoading(false);
+        console.log(error);
       }
     };
-
     if (selectedConversation?._id) getMessages();
   }, [selectedConversation?._id, setMessages]);
-
+  console.log(messages);
   const handleMessage = (e) => {
     setSendData(e.target.value);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
@@ -85,12 +80,14 @@ export const MessageContainer = ({ onBackUser }) => {
       console.log(error);
     }
   };
-
   return (
-    <div className="h-[98%] md:h-[100%] flex flex-col justify-center pt-0 pb-2">
+    <div className="h-[98%] md:h-[100%] flex flex-col justify-center pt-0 pb-2 mt-[5%] md:mt-[0%]">
       {selectedConversation === null ? (
         <div className="flex items-center justify-center w-full h-full">
-          <div className="px-4 text-center text-2xl text-gray-950 font-semibold flex flex-col items-center gap-2">
+          <div
+            className="px-4 text-center text-2xl text-gray-950 font-semibold 
+            flex flex-col items-center gap-2"
+          >
             <p className="text-2xl">Welcome!!👋 {AuthUser.username}😉</p>
             <p className="text-lg">Select a chat to start messaging</p>
             <TiMessages className="text-6xl text-center" />
@@ -98,46 +95,55 @@ export const MessageContainer = ({ onBackUser }) => {
         </div>
       ) : (
         <>
-          {/* Header */}
           <div className="flex justify-between gap-1 bg-sky-600 md:px-2 rounded-lg h-10 md:h-12">
             <div className="flex gap-2 md:justify-between items-center w-full">
               <div className="md:hidden ml-1 self-center">
                 <button
-                  onClick={() => onBackUser(true)}
+                  onClick={() => {
+                    onBackUser(true);
+                  }}
                   className="bg-white rounded-full px-2 py-1 self-center"
                 >
                   <TiArrowBack size={25} />
                 </button>
               </div>
               <div className="flex justify-between mr-2 gap-2">
-                <img
-                  className="rounded-full w-6 h-6 md:w-10 md:h-10 cursor-pointer self-center"
-                  src={selectedConversation?.profilepic}
-                  alt="profile"
-                />
+                <div className="self-center">
+                  <img
+                    className="rounded-full w-6 h-6 md:w-10 md:h-10 cursor-pointer"
+                    src={selectedConversation?.profilepic}
+                  />
+                </div>
                 <span className="text-gray-950 self-center text-sm md:text-xl font-bold">
                   {selectedConversation?.username}
                 </span>
               </div>
             </div>
           </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto" ref={messageContainerRef}>
-            {loading ? (
+          <div className="flex-1 overflow-y-auto">
+            {loading && (
               <div className="flex w-full h-full flex-col items-center justify-center gap-4 bg-transparent">
                 <div className="loading loading-spinner"></div>
               </div>
-            ) : messages?.length === 0 ? (
+            )}
+            {!loading && messages?.length === 0 && (
               <p className="text-center text-white items-center">
                 Send a message to start Conversation
               </p>
-            ) : (
+            )}
+            {!loading &&
+              messages?.length > 0 &&
               messages.map((message) => (
-                <div className="text-white" key={message?._id}>
+                <div
+                  className="text-white"
+                  key={message?._id}
+                  ref={lastMessageRef}
+                >
                   <div
                     className={`chat ${
-                      message.senderId === AuthUser._id ? "chat-end" : "chat-start"
+                      message.senderId === AuthUser._id
+                        ? "chat-end"
+                        : "chat-start"
                     }`}
                   >
                     <div className="chat-image avatar"></div>
@@ -151,20 +157,16 @@ export const MessageContainer = ({ onBackUser }) => {
                       {message?.message}
                     </div>
                     <div className="chat-footer text-[10px] opacity-80 text-white">
-                      {new Date(message?.createdAt).toLocaleDateString("en-IN")}{" "}
-                      {new Date(message?.createdAt).toLocaleTimeString("en-IN", {
-                        hour: "numeric",
-                        minute: "numeric",
-                      })}
+                      {new Date(message?.createdAt).toLocaleDateString("en-IN")}
+                      {new Date(message?.createdAt).toLocaleTimeString(
+                        "en-IN",
+                        { hour: "numeric", minute: "numeric" }
+                      )}
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-            <div ref={bottomRef} />
+              ))}
           </div>
-
-          {/* Input */}
           <form onSubmit={handleSubmit} className="rounded-full text-black">
             <div className="w-full rounded-full flex items-center bg-white">
               <input
