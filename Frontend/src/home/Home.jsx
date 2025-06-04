@@ -27,7 +27,7 @@ export const Home = () => {
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center px-2 md:px-4 overflow-hidden">
+    <div className="w-screen h-[85vh] md:h-screen flex items-center justify-center px-2 md:px-4 overflow-hidden">
       <div className="flex w-full h-full max-w-[1300px] rounded-2xl shadow-2xl bg-white/10 backdrop-blur-md border border-white/20 overflow-hidden">
         {/* Sidebar */}
         <div
